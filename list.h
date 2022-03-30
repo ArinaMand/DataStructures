@@ -13,8 +13,8 @@ namespace lab618
             leaf * pnext;
             leaf(T& _data, leaf * _pnext)
             {
-                self.data = data;
-                self.pnext = _pnext;
+                this.data = data;
+                this.pnext = _pnext;
             }
         };
     public:
@@ -22,7 +22,7 @@ namespace lab618
         {
         public:
             CIterator()
-                : m_pCurrent(0), m_pBegin(0)
+                : m_pCurrent(nullptr), m_pBegin(nullptr)
             {}
 
             CIterator(leaf *p)
@@ -33,8 +33,8 @@ namespace lab618
 
             CIterator(const CIterator &src)
             {
-                m_pBegin = scr.m_pBegin;
-                m_pCurrent = scr.m_pCurrent;
+                m_pBegin = src.m_pBegin;
+                m_pCurrent = src.m_pCurrent;
             }
 
             ~CIterator()
@@ -43,8 +43,9 @@ namespace lab618
 
             CIterator& operator = (const CIterator&  src)
             {
-                m_pBegin = scr.m_pBegin;
-                m_pCurrent = scr.m_pCurrent;
+                m_pBegin = src.m_pBegin;
+                m_pCurrent = src.m_pCurrent;
+                return *this;
             }
 
             bool operator != (const CIterator&  it) const
@@ -59,35 +60,33 @@ namespace lab618
 
             T& getData()
             {
-                return T();
+                return &m_pCurrent.data;
             }
 
             T& operator* ()
             {
-                T tmp;
-                return tmp;
+                return & m_pCurrent.data;
             }
 
             leaf* getLeaf()
             {
-                return *m_pCurrent;
+                return m_pCurrent;
             }
 
             void setLeaf(leaf* p)
             {
-                self.m_pCurrent.pnext = p;
-                self.m_pCurrent = &p;
+                m_pCurrent = p;
             }
 
             void setLeafPreBegin(leaf* p)
             {
-                new_begin = &p;
-                new_begin.pnext = *self.m_pBegin;
-                self.m_pBegin = *new_begin;
+                leaf* new_begin = &p;
+                new_begin.pnext = *m_pBegin;
+                m_pBegin = *new_begin;
             }
 
             bool isValid() {
-                return false;
+                return m_pCurrent != nullptr || m_pBegin != nullptr;
             }
 
         private:
@@ -101,6 +100,8 @@ namespace lab618
 
         CSingleLinkedList()
         {
+            m_pBegin = nullptr;
+            m_pEnd = nullptr;
         }
 
         virtual ~CSingleLinkedList()
@@ -109,27 +110,41 @@ namespace lab618
 
         void pushBack(T& data)
         {
-            l = leaf(data, self.m_pBegin);
-            self.m_pBegin = *l;
+            leaf l = leaf(data, nullptr);
+            if (m_pEnd == nullptr) {
+                m_pBegin = *l;
+            }
+            else {
+                &m_pEnd._pnext = *l;
+            }
+            m_pEnd = *l;
         }
 
         void pushFront(T& data)
         {
-            l = leaf(data);
-            &self.m_pEnd.pname = *l;
-            self.m_pEnd = *l;
+            leaf l = leaf(data, nullptr);
+            if (m_pBegin != nullptr) {
+                l._pnext = m_pBegin;
+            }
+            m_pBegin = *l;
         }
 
         T popFront()
         {
-            T tmp;
+            T tmp = *m_pBegin.data;
+            leaf* l = m_pBegin;
+            m_pBegin = &m_pBegin.next;
+            delete(l);
+            if (m_pBegin == nullptr) {
+                m_pEnd = nullptr;
+            }
             return tmp;
         }
 
         // изменяет состояние итератора. выставляет предыдущую позицию.
         void erase(CIterator& it)
         {
-            l = m_pBegin;
+            leaf* l = m_pBegin;
             while (l.pnext != it) {
                 l = l.pnext;
             };
@@ -139,8 +154,8 @@ namespace lab618
 
         int getSize()
         {
-            l = m_pBegin;
-            count = 1;
+            leaf* l = m_pBegin;
+            int count = 1;
             while (l != m_pEnd) {
                 l = l.pnext;
                 ++count;
@@ -150,17 +165,18 @@ namespace lab618
 
         void clear()
         {
-            current_item = &self.m_pBegin;
-            while (current_item.pnext != None) {
-                next_item = &current_item.pnext;
+            leaf* current_item = &m_pBegin;
+            while (current_item.pnext != nullptr) {
+                leaf* next_item = &current_item.pnext;
                 delete(current_item);
                 current_item = next_item;
             }
+            m_pBegin = nullptr;
+            m_pEnd = nullptr;
         }
 
         CIterator begin()
         {
-
             return CIterator();
         }
 
@@ -178,9 +194,9 @@ namespace lab618
             leaf * pnext, *pprev;
             leaf(T& _data, leaf * _pprev, leaf * _pnext)
             {
-                self.data = data;
-                self.pnext = _pnext;
-                self.pprev = _pprev;
+                this.data = data;
+                this.pnext = _pnext;
+                this.pprev = _pprev;
             }
         };
     public:
@@ -189,15 +205,23 @@ namespace lab618
         public:
             CIterator()
             {
+                m_pBegin = nullptr;
+                m_pEnd = nullptr;
+                m_pCurrent = nullptr;
             }
 
             CIterator(leaf *p)
             {
+                m_pBegin = p;
+                m_pEnd = p;
+                m_pCurrent = p;
             }
 
             CIterator(const CIterator &src)
             {
-                self.m_pCurrent = scr;
+                m_pBegin = src.m_pBegin;
+                m_pEnd = src.m_pEnd;
+                m_pCurrent = src.m_pCurrent;
             }
 
             ~CIterator()
@@ -206,20 +230,21 @@ namespace lab618
 
             CIterator& operator = (const CIterator&  src)
             {
-                m_pBegin = scr.m_pBegin;
-                m_pCurrent = scr.m_pCurrent;
-                m_pEnd = scr.m_pEnd;
+                m_pBegin = src.m_pBegin;
+                m_pCurrent = src.m_pCurrent;
+                m_pEnd = src.m_pEnd;
+                return *this;
             }
 
             bool operator != (const CIterator&  it) const
             {
-                if (self.m_pBegin != it.m_pBegin) {
+                if (m_pBegin != it.m_pBegin) {
                     return false;
                 };
-                if (self.m_pCurrent != it.m_pCurrent) {
+                if (m_pCurrent != it.m_pCurrent) {
                     return false;
                 };
-                if (self.m_pEnd != it.m_pEnd) {
+                if (m_pEnd != it.m_pEnd) {
                     return false;
                 }
                 return true;
@@ -227,70 +252,62 @@ namespace lab618
 
             void operator++()
             {
-                if (self.m_pCurrent != self.m_pEnd) {
-                    self.m_pCurrent = item.pnext;
+                if (m_pCurrent != m_pEnd) {
+                    m_pCurrent = &m_pCurrent._pnext;
                 }
                 else {
-                    assert("end of list");
+                    _ASSERT("end of list");
                 }
             }
 
             void operator--()
             {
-                if (self.m_pCurrent != self.m_pBegin) {
-                    self.m_pCurrent = item.pprev;
+                if (m_pCurrent != m_pBegin) {
+                    m_pCurrent = &m_pCurrent._pprev;;
                 }
                 else {
-                    assert("start of list");
+                    _ASSERT("start of list");
                 }
             }
 
             T& getData()
             {
-                T tmp;
-                return tmp;
+                return &m_pCurrent.data;
             }
 
             T& operator* ()
             {
-                T tmp;
-                return tmp;
+                return &m_pCurrent.data;
             }
 
             leaf* getLeaf()
             {
-                return 0;
+                return m_pCurrent;
             }
 
             // применяется в erase и eraseAndNext
             void setLeaf(leaf* p)
             {
-                /*p.pprev = m_pCurrent;
-                secont_leaf = *m_pCurrent.pnext;
-                p.pnext = second_leaf;
-                m_pCurrent.pnext = p;
-                *second_leaf.pprev = p;
-                m_pCurrent = p;*/
                 m_pCurrent = p;
             }
 
             // применяется в erase и eraseAndNext
             void setLeafPreBegin(leaf* p)
             {
-                &p.pnext = self.m_pBegin;
-                self.m_pBegin = p;
+                &p.pnext = m_pBegin;
+                m_pBegin = p;
             }
 
             // применяется в erase и eraseAndNext
             void setLeafPostEnd(leaf* p)
             {
-                (&self.m_pEnd).pnext = p;
-                &p.pprev = self.m_pEnd;
-                self.m_pEnd = p;
+                &m_pEnd.pnext = p;
+                &p.pprev = m_pEnd;
+                m_pEnd = p;
             }
 
             bool isValid() {
-                return false;
+                return m_pCurrent != nullptr || m_pBegin != nullptr || m_pEnd != nullptr;
             }
 
         private:
@@ -306,6 +323,8 @@ namespace lab618
 
         CDualLinkedList()
         {
+            m_pBegin = nullptr;
+            m_pEnd = nullptr;
         };
 
         virtual ~CDualLinkedList()
@@ -314,63 +333,92 @@ namespace lab618
 
         void pushBack(T& data)
         {
-            l = leaf(data, nullptr, m_pBegin);
-            *m_pBegin.pprev = *l;
-            m_pBegin = *l;
+            leaf l = leaf(data, m_pEnd, nullptr);
+            if (m_pEnd != nullptr) {
+                *m_pEnd.pnext = *l;
+            }
+            else {
+                m_pBegin = *l;
+            }
+            m_pEnd = *l;
         }
 
         T popBack()
         {
-            T tmp;
+            T tmp = &m_pEnd.data;
+            leaf* ptr = m_pEnd;
+            m_pEnd = &m_pEnd._pprev;
+            if (m_pEnd == m_pBegin) {
+                m_pBegin = nullptr;
+            }
+            delete(ptr);
+            
             return tmp;
         }
 
         void pushFront(T& data)
         {
-            l = leaf(data, m_pEnd, nullptr);
-            *m_pEnd.pnext = *l;
-            m_pEnd = *l;
+            leaf l = leaf(data, m_pBegin, nullptr);
+            if (m_pBegin == nullptr) {
+                m_pBegin = *l;
+                m_pEnd = *l;
+            }
+            else {
+                &m_pBegin._pprev = *l;
+            }
         }
 
         T popFront()
         {
-            T tmp;
+            T tmp = &m_pBegin.data;
+            leaf* l = m_pBegin;
+            m_pBegin = &m_pBegin.pnext;
+            if (m_pBegin != nullptr){
+                &m_pBegin.pprev = nullptr;
+            }
+            delete(l);
             return tmp;
         }
 
         // изменяет состояние итератора. выставляет предыдущую позицию.
         void erase(CIterator& it)
         {
-
+            --it;
         }
 
         // изменяет состояние итератора. выставляет следующую позицию.
         void eraseAndNext(CIterator& it)
         {
+            ++it;
         }
 
         int getSize()
         {
-            return 0;
+            int count = 0;
+            leaf* current = m_pBegin;
+            while (current != nullptr) {
+                current = &current.pnext;
+                ++count;
+            }
         }
 
         void clear()
         {
-            l = m_pBegin;
+            leaf* l = m_pBegin;
             while (l.pnext != nullptr) {
                 l = l.pnext;
-                free(l.pprev);
+                delete(l.pprev);
             }
         }
 
         CIterator begin()
         {
-            return CIterator();
+            return CIterator(m_pBegin);
         }
 
         CIterator end()
         {
-            return CIterator();
+            return CIterator(m_pEnd);
         }
 
     private:
