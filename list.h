@@ -27,8 +27,10 @@ namespace lab618
 
             CIterator(leaf *p)
             {
-                m_pBegin = p;
                 m_pCurrent = p;
+                if (m_pBegin == nullptr) {
+                    m_pBegin = p;
+                }
             }
 
             CIterator(const CIterator &src)
@@ -177,7 +179,7 @@ namespace lab618
 
         CIterator begin()
         {
-            return CIterator();
+            return CIterator(m_pBegin);
         }
 
     private:
