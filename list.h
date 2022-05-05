@@ -293,7 +293,10 @@ namespace lab618
 
             void operator++()
             {
-                if (!m_pBegin) {
+                if (m_pCurrent != nullptr) {
+                    m_pCurrent = m_pCurrent->pnext;
+                }
+                /*if (m_pBegin != nullptr) {
                     if (m_pCurrent != nullptr) {
                         m_pCurrent = m_pCurrent->pnext;
                     }
@@ -301,12 +304,15 @@ namespace lab618
                 else {
                     m_pCurrent = m_pBegin;
                     m_pBegin = nullptr;
-                }
+                }*/
             }
 
             void operator--()
             {
-                if (!m_pEnd) {
+                if (m_pCurrent != nullptr) {
+                    m_pCurrent = m_pCurrent->pprev;
+                }
+                /*if (!m_pEnd) {
                     if (m_pCurrent != nullptr) {
                         m_pCurrent = m_pCurrent->pprev;
                     }
@@ -314,7 +320,7 @@ namespace lab618
                 else {
                     m_pCurrent = m_pEnd;
                     m_pEnd = nullptr;
-                }
+                }*/
             }
 
             T& getData()
@@ -382,9 +388,9 @@ namespace lab618
 
         void pushBack(T& data)
         {
-            leaf* l = new leaf(data, m_pEnd, nullptr);
+            leaf* l = new leaf(data, nullptr, m_pEnd);
             if (m_pEnd != nullptr) {
-                m_pEnd->pnext = l;
+                m_pEnd->pprev = l;
             }
             else {
                 m_pBegin = l;
@@ -399,10 +405,10 @@ namespace lab618
                 m_pBegin = nullptr;
             }
             leaf* ptr = m_pEnd;
-            m_pEnd = m_pEnd->pprev;
+            m_pEnd = m_pEnd->pnext;
             delete(ptr);
-            if (m_pEnd == nullptr) {
-                m_pEnd->pnext = nullptr;
+            if (m_pEnd != nullptr) {
+                m_pEnd->pprev = nullptr;
             }
             return data;
         }
@@ -415,7 +421,7 @@ namespace lab618
                 m_pEnd = l;
             }
             else {
-                m_pBegin->pprev = l;
+                m_pBegin->pnext = l;
                 m_pBegin = l;
             }
         }
@@ -427,9 +433,9 @@ namespace lab618
                 m_pEnd = nullptr;
             }
             leaf* l = m_pBegin;
-            m_pBegin = m_pBegin->pnext;
+            m_pBegin = m_pBegin->pprev;
             if (m_pBegin != nullptr){
-                m_pBegin->pprev = nullptr;
+                m_pBegin->pnext = nullptr;
             }
             delete(l);
             return data;
@@ -456,10 +462,6 @@ namespace lab618
                 }
             }
             delete it_leaf;
-            if (!m_pBegin || !m_pEnd) {
-                m_pBegin = nullptr;
-                m_pEnd = nullptr;
-            }
         }
 
         // изменяет состояние итератора. выставляет следующую позицию.
@@ -497,7 +499,7 @@ namespace lab618
             int count = 1;
             leaf* current = m_pBegin;
             while (current != m_pEnd) {
-                current = current->pnext;
+                current = current->pprev;
                 ++count;
             }
             return count;
