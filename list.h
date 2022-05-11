@@ -255,6 +255,12 @@ namespace lab618
             {
                 m_pBegin = nullptr;
                 m_pEnd = nullptr;
+                if (p->pprev == nullptr) {
+                    m_pEnd = p;
+                }
+                if (p->pnext == nullptr) {
+                    m_pBegin = p;
+                }
                 m_pCurrent = p;
             }
 
@@ -293,10 +299,10 @@ namespace lab618
 
             void operator++()
             {
-                if (m_pCurrent != nullptr) {
+                /*if (m_pCurrent != nullptr) {
                     m_pCurrent = m_pCurrent->pnext;
-                }
-                /*if (m_pBegin != nullptr) {
+                }*/
+                if (m_pBegin != nullptr) {
                     if (m_pCurrent != nullptr) {
                         m_pCurrent = m_pCurrent->pnext;
                     }
@@ -304,15 +310,15 @@ namespace lab618
                 else {
                     m_pCurrent = m_pBegin;
                     m_pBegin = nullptr;
-                }*/
+                }
             }
 
             void operator--()
             {
-                if (m_pCurrent != nullptr) {
+                /*if (m_pCurrent != nullptr) {
                     m_pCurrent = m_pCurrent->pprev;
-                }
-                /*if (!m_pEnd) {
+                }*/
+                if (!m_pEnd) {
                     if (m_pCurrent != nullptr) {
                         m_pCurrent = m_pCurrent->pprev;
                     }
@@ -320,7 +326,7 @@ namespace lab618
                 else {
                     m_pCurrent = m_pEnd;
                     m_pEnd = nullptr;
-                }*/
+                }
             }
 
             T& getData()
@@ -351,6 +357,7 @@ namespace lab618
                 m_pBegin = p;
                 m_pCurrent = nullptr;
                 m_pEnd = nullptr;
+                //m_pCurrent = new leaf(p->data, m_pBegin, nullptr);
             }
 
             // применяется в erase и eraseAndNext
@@ -359,10 +366,11 @@ namespace lab618
                 m_pEnd = p;
                 m_pCurrent = nullptr;
                 m_pBegin = nullptr;
+                //m_pCurrent = new leaf(p->data, nullptr, m_pEnd);
             }
 
             bool isValid() {
-                return m_pCurrent != nullptr || m_pBegin != nullptr || m_pEnd != nullptr;
+                return m_pCurrent != nullptr;// || m_pBegin != nullptr || m_pEnd != nullptr;
             }
 
         private:
@@ -389,13 +397,22 @@ namespace lab618
         void pushBack(T& data)
         {
             leaf* l = new leaf(data, nullptr, m_pEnd);
-            if (m_pEnd != nullptr) {
+            if (m_pBegin == nullptr) {
+                m_pBegin = newLeaf;
+                m_pEnd = newLeaf;
+                return;
+            }
+            m_pEnd->pnext = newLeaf;
+            newLeaf->pprev = m_pEnd;
+            m_pEnd = newLeaf;
+
+            /*if (m_pEnd != nullptr) {
                 m_pEnd->pprev = l;
             }
             else {
                 m_pBegin = l;
             }
-            m_pEnd = l;
+            m_pEnd = l;*/
         }
 
         T popBack()
@@ -406,9 +423,9 @@ namespace lab618
             }
             leaf* ptr = m_pEnd;
             m_pEnd = m_pEnd->pnext;
-            delete(ptr);
+            delete ptr;
             if (m_pEnd != nullptr) {
-                m_pEnd->pprev = nullptr;
+                m_pEnd->pnext = nullptr;
             }
             return data;
         }
@@ -421,7 +438,7 @@ namespace lab618
                 m_pEnd = l;
             }
             else {
-                m_pBegin->pnext = l;
+                m_pBegin->pprev = l;
                 m_pBegin = l;
             }
         }
@@ -433,11 +450,11 @@ namespace lab618
                 m_pEnd = nullptr;
             }
             leaf* l = m_pBegin;
-            m_pBegin = m_pBegin->pprev;
+            m_pBegin = m_pBegin->pnext;
             if (m_pBegin != nullptr){
-                m_pBegin->pnext = nullptr;
+                m_pBegin->pprev = nullptr;
             }
-            delete(l);
+            delete l;
             return data;
         }
 
@@ -462,6 +479,10 @@ namespace lab618
                 }
             }
             delete it_leaf;
+            if (!m_pBegin || !m_pEnd) {
+                m_pBegin = nullptr;
+                m_pEnd = nullptr;
+            }
         }
 
         // изменяет состояние итератора. выставляет следующую позицию.

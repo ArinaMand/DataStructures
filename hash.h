@@ -1,7 +1,7 @@
 #ifndef HASH_HEAD_H_2021_03_11
 #define HASH_HEAD_H_2021_03_11
 
-#include "../MemoryManager/MemoryManager/mm.h" // необходимо использовать свой memorymanager
+#include "MemoryManager/MemoryManager/mm.h" // необходимо использовать свой memorymanager
 
 namespace lab618
 {
@@ -73,6 +73,9 @@ namespace lab618
         {
             m_tableSize = hashTableSize;
             m_pTable = new leaf*[hashTableSize];
+            for (int i = 0; i < hashTableSize; ++i) {
+                m_pTable[i] = nullptr;
+            }
             m_Memory = CMemoryManager(defaultBlockSize, true);
         }
         /**
@@ -97,20 +100,18 @@ namespace lab618
         bool add(T* pElement)
         {
             try_find = find(pElement);
-            if (try_find != null) {
+            if (try_find != nullptr) {
                 return false;
             }
-            //m_pTable[hash].insert(pElement);
-            //if hash used -> to m_Memory
-            //if not -> to m_pTable
-
 
             leaf* new_leaf = m_Memory.newObject();
+            if (!newLeaf) {
+                throw CHash::CMemoryException("no place for new elem");
+            }
             new_leaf->pData = pElement;
             new_leaf->pnext = m_pTable[idx];
             m_pTable[idx] = new_leaf;
             return true;
-            
         }
         /**
         Функция обновления элемента в Хеш-таблице. Обновляет, если элемент уже есть добавляет, если элемента еще нет.
@@ -138,7 +139,7 @@ namespace lab618
         {
             int idx;
             leaf* l = findLeaf(element, &idx);
-            if (!l) {
+            if (l == null) {
                 return nullptr;
             }
             return l.pData;
@@ -149,10 +150,19 @@ namespace lab618
         */
         bool remove(const T& element)
         {
-            int idx;
+            /*int idx;
             leaf* l = findLeaf(element, idx);
             if (l == null) { return false; }
+            m_Memory.deleteObject(l);*/
+            unsigned int i = HashFunc(&element) % m_tableSize;
+            leaf* l = m_pTable[i];
+            leaf* pred_l = findLeaf(element, idx);
+            if (pred_l == nullptr) {
+                return false;
+            }
+            m_pTable[i] = l->pnext;
             m_Memory.deleteObject(l);
+            return true;
         }
 
         /**
@@ -180,16 +190,13 @@ namespace lab618
         {
             int hash = HashFunc(pElement) % m_tableSize;
             leaf* ptr = m_pTable[hash];
-            int counter = 0;
             while (ptr != nullptr) {
-                if (ptr.pData == pElement) {
-                    idx = counter;
+                if (Compare(ptr->pData, pElement) == 0) {
                     return ptr;
                 }
-                ++counter;
-                ptr = ptr.pnext;
+                ptr = ptr->pnext;
             }
-            return null;
+            return nullptr;
         }
 
         /**

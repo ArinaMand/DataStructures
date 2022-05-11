@@ -56,14 +56,15 @@ namespace lab618
                 m_pCurrentBlk = m_pBlocks;
             }
             block* b = m_pCurrentBlk;
+
             if (b->usedCount == m_blkSize) {
                 b = m_pBlocks;
-                while (b != nullptr && b->usedCount == m_blkSize) {
+                while (b->pnext && b->usedCount == m_blkSize) {
                     b = b->pnext;
                 }
-                if (b == nullptr) {
+                if (b == nullptr || b->usedCount == m_blkSize) {
                     block* new_block = newBlock();
-                    //b->pnext = new_block;
+                    b->pnext = new_block;
                     b = new_block;
                 }
                 m_pCurrentBlk = b;
@@ -75,12 +76,6 @@ namespace lab618
             ::new(reinterpret_cast<void*>(p)) T;
             m_pCurrentBlk->usedCount += 1;
 
-
-            /*T* p = m_pCurrentBlk->pdata + m_pCurrentBlk->firstFreeIndex;
-            memset(reinterpret_cast<void*>(p), 0, sizeof(T));
-            ::new(reinterpret_cast<void*>(p)) T;
-            m_pCurrentBlk->firstFreeIndex = reinterpret_cast<int*>(p);
-            m_pCurrentBlk->usedCount += 1;*/
             return p;
         }
 
@@ -107,13 +102,27 @@ namespace lab618
         // Очистка данных, зависит от m_isDeleteElementsOnDestruct
         void clear()
         {
+            if (!m_pBlocks) {
+                return;
+            }
+            block* cur_block = m_pBlocks;
+
             if (m_isDeleteElementsOnDestruct) {
-                block* cur_block = m_pBlocks;
                 while (cur_block != nullptr) {
                     block* next = cur_block->pnext;
                     deleteBlock(cur_block);
                     cur_block = next;
                 };
+            }
+            else {
+                while (cur_block != nullptr)
+                {
+                    if (cur_block->usedCount > 0)
+                    {
+                        throw CException("object not empty, must clear by yourself");
+                    }
+                    cur_block = cur_block->pnext;
+                }
             }
             m_pBlocks = nullptr;
             m_pCurrentBlk = nullptr;
@@ -125,19 +134,23 @@ namespace lab618
         {
             block* new_block = new block();
             new_block->pdata = new T[m_blkSize];
-            //newBlock->pnext = nullptr;
             new_block->firstFreeIndex = 0;
             new_block->usedCount = 0;
             for (int i = 0; i < m_blkSize - 1; ++i) {
-                *reinterpret_cast<int*>(&new_block->pdata[i]) = i + 1;
+                T* xxx = new_block->pdata + i;
+                int* aaa = reinterpret_cast<int*>(xxx);
+                *aaa = i + 1;
             }
-            *reinterpret_cast<int *>(&new_block->pdata[m_blkSize - 1]) = -1;
+            T* xxx = new_block->pdata + m_blkSize - 1;
+            int* aaa = reinterpret_cast<int*>(xxx);
+            *aaa = -1;
             return new_block;
         }
 
         // Освободить память блока данных. Применяется в clear
         void deleteBlock(block *p)
         {
+            /*не стыкуется с newBlock*/
             delete[] p->pdata;
             delete p;
         }
