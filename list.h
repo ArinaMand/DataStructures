@@ -255,10 +255,10 @@ namespace lab618
             {
                 m_pBegin = nullptr;
                 m_pEnd = nullptr;
-                if (p->pprev == nullptr) {
+                if (p->pnext == nullptr) {
                     m_pEnd = p;
                 }
-                if (p->pnext == nullptr) {
+                if (p->pprev == nullptr) {
                     m_pBegin = p;
                 }
                 m_pCurrent = p;
@@ -348,7 +348,7 @@ namespace lab618
             void setLeaf(leaf* p)
             {
                 m_pCurrent = p;
-                m_pBegin = nullptr;
+                //m_pBegin = nullptr;
             }
 
             // применяется в erase и eraseAndNext
@@ -397,22 +397,15 @@ namespace lab618
         void pushBack(T& data)
         {
             leaf* l = new leaf(data, nullptr, m_pEnd);
-            if (m_pBegin == nullptr) {
-                m_pBegin = newLeaf;
-                m_pEnd = newLeaf;
-                return;
-            }
-            m_pEnd->pnext = newLeaf;
-            newLeaf->pprev = m_pEnd;
-            m_pEnd = newLeaf;
-
-            /*if (m_pEnd != nullptr) {
-                m_pEnd->pprev = l;
+            if (m_pEnd == nullptr) {
+                m_pBegin = l;
+                m_pEnd = l;
             }
             else {
-                m_pBegin = l;
+                m_pEnd->pnext = l;
+                l->pprev = m_pEnd;
+                m_pEnd = l;
             }
-            m_pEnd = l;*/
         }
 
         T popBack()
@@ -439,6 +432,7 @@ namespace lab618
             }
             else {
                 m_pBegin->pprev = l;
+                l->pnext = m_pBegin;
                 m_pBegin = l;
             }
         }
@@ -520,9 +514,9 @@ namespace lab618
             int count = 1;
             leaf* current = m_pBegin;
             while (current != m_pEnd) {
-                current = current->pprev;
+                current = current->pnext;
                 ++count;
-            }
+             }
             return count;
         }
 

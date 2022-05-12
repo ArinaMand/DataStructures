@@ -85,11 +85,10 @@ namespace lab618
             block* current_block = m_pBlocks;
             while (current_block != nullptr) {
                 int data_distance = p - current_block->pdata;
-                if (data_distance >= 0 && data_distance < m_blkSize) {
+                if (data_distance >= 0 && data_distance <= m_blkSize) {
                     p->~T();
                     memset(reinterpret_cast<void*>(p), 0, sizeof(T));
-                    int* ptr = reinterpret_cast<int*>(p);
-                    *ptr = current_block->firstFreeIndex;
+                    *(reinterpret_cast<int*>(p)) = current_block->firstFreeIndex;
                     current_block->firstFreeIndex = data_distance;
                     current_block->usedCount -= 1;
                     return true;
