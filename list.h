@@ -2,6 +2,7 @@
 #define TEMPLATES_LIST_2022_02_03
 
 #include <cassert>
+#include <iostream>
 
 namespace lab618
 {
@@ -206,7 +207,7 @@ namespace lab618
                 return;
             }
             leaf* current_item = m_pBegin;
-            while (current_item.pnext != nullptr) {
+            while (current_item->pnext != nullptr) {
                 leaf* next_item = current_item->pnext;
                 delete(current_item);
                 current_item = next_item;
@@ -255,12 +256,6 @@ namespace lab618
             {
                 m_pBegin = nullptr;
                 m_pEnd = nullptr;
-                if (p->pnext == nullptr) {
-                    m_pEnd = p;
-                }
-                if (p->pprev == nullptr) {
-                    m_pBegin = p;
-                }
                 m_pCurrent = p;
             }
 
@@ -286,47 +281,40 @@ namespace lab618
             bool operator != (const CIterator&  it) const
             {
                 if (m_pBegin != it.m_pBegin) {
-                    return false;
+                    return true;
                 };
                 if (m_pCurrent != it.m_pCurrent) {
-                    return false;
+                    return true;
                 };
                 if (m_pEnd != it.m_pEnd) {
-                    return false;
+                    return true;
                 }
-                return true;
+                return false;
             }
 
             void operator++()
             {
-                /*if (m_pCurrent != nullptr) {
-                    m_pCurrent = m_pCurrent->pnext;
-                }*/
                 if (m_pBegin != nullptr) {
-                    if (m_pCurrent != nullptr) {
-                        m_pCurrent = m_pCurrent->pnext;
-                    }
-                }
-                else {
                     m_pCurrent = m_pBegin;
                     m_pBegin = nullptr;
+                    return;
+                }
+                if (m_pCurrent != nullptr) {
+                    m_pCurrent = m_pCurrent->pnext;
                 }
             }
 
             void operator--()
             {
-                /*if (m_pCurrent != nullptr) {
-                    m_pCurrent = m_pCurrent->pprev;
-                }*/
-                if (!m_pEnd) {
-                    if (m_pCurrent != nullptr) {
-                        m_pCurrent = m_pCurrent->pprev;
-                    }
-                }
-                else {
+                if (m_pEnd != nullptr) {
                     m_pCurrent = m_pEnd;
                     m_pEnd = nullptr;
+                    return;
                 }
+                if (m_pCurrent != nullptr) {
+                    m_pCurrent = m_pCurrent->pprev;
+                }
+
             }
 
             T& getData()
@@ -348,7 +336,7 @@ namespace lab618
             void setLeaf(leaf* p)
             {
                 m_pCurrent = p;
-                //m_pBegin = nullptr;
+                m_pBegin = nullptr;
             }
 
             // применяется в erase и eraseAndNext
@@ -357,7 +345,6 @@ namespace lab618
                 m_pBegin = p;
                 m_pCurrent = nullptr;
                 m_pEnd = nullptr;
-                //m_pCurrent = new leaf(p->data, m_pBegin, nullptr);
             }
 
             // применяется в erase и eraseAndNext
@@ -366,7 +353,6 @@ namespace lab618
                 m_pEnd = p;
                 m_pCurrent = nullptr;
                 m_pBegin = nullptr;
-                //m_pCurrent = new leaf(p->data, nullptr, m_pEnd);
             }
 
             bool isValid() {
@@ -396,14 +382,13 @@ namespace lab618
 
         void pushBack(T& data)
         {
-            leaf* l = new leaf(data, nullptr, m_pEnd);
+            leaf* l = new leaf(data, m_pEnd, nullptr);
             if (m_pEnd == nullptr) {
                 m_pBegin = l;
                 m_pEnd = l;
             }
             else {
                 m_pEnd->pnext = l;
-                l->pprev = m_pEnd;
                 m_pEnd = l;
             }
         }
@@ -415,7 +400,7 @@ namespace lab618
                 m_pBegin = nullptr;
             }
             leaf* ptr = m_pEnd;
-            m_pEnd = m_pEnd->pnext;
+            m_pEnd = m_pEnd->pprev;
             delete ptr;
             if (m_pEnd != nullptr) {
                 m_pEnd->pnext = nullptr;
@@ -425,14 +410,13 @@ namespace lab618
 
         void pushFront(T& data)
         {
-            leaf* l = new leaf(data, m_pBegin, nullptr);
+            leaf* l = new leaf(data, nullptr, m_pBegin);
             if (m_pBegin == nullptr) {
                 m_pBegin = l;
                 m_pEnd = l;
             }
             else {
                 m_pBegin->pprev = l;
-                l->pnext = m_pBegin;
                 m_pBegin = l;
             }
         }
@@ -445,10 +429,10 @@ namespace lab618
             }
             leaf* l = m_pBegin;
             m_pBegin = m_pBegin->pnext;
+            delete l;
             if (m_pBegin != nullptr){
                 m_pBegin->pprev = nullptr;
             }
-            delete l;
             return data;
         }
 
@@ -515,6 +499,9 @@ namespace lab618
             leaf* current = m_pBegin;
             while (current != m_pEnd) {
                 current = current->pnext;
+                if (count == 999) {
+                    std::cout << "oh no!";
+                }
                 ++count;
              }
             return count;

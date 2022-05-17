@@ -1,6 +1,7 @@
 #include <string>
 #ifndef MEMORY_MANAGER_HEAD_H_2022_02_17
 #define MEMORY_MANAGER_HEAD_H_2022_02_17
+#include <iostream>
 
 namespace lab618
 {
@@ -39,12 +40,6 @@ namespace lab618
 
         virtual ~CMemoryManager()
         {
-            /*block* cur_block = m_pBlocks;
-            do {
-                block* prev = cur_block;
-                cur_block = cur_block.pnext;
-                free(prev);
-            } while (cur_block.pnext != nullptr);*/
             clear();
         }
 
@@ -55,14 +50,15 @@ namespace lab618
                 m_pBlocks = newBlock();
                 m_pCurrentBlk = m_pBlocks;
             }
+
             block* b = m_pCurrentBlk;
 
             if (b->usedCount == m_blkSize) {
                 b = m_pBlocks;
-                while (b->pnext && b->usedCount == m_blkSize) {
+                while (b->pnext!=nullptr && b->usedCount == m_blkSize) {
                     b = b->pnext;
                 }
-                if (b == nullptr || b->usedCount == m_blkSize) {
+                if (b->usedCount == m_blkSize) {
                     block* new_block = newBlock();
                     b->pnext = new_block;
                     b = new_block;
@@ -85,10 +81,11 @@ namespace lab618
             block* current_block = m_pBlocks;
             while (current_block != nullptr) {
                 int data_distance = p - current_block->pdata;
-                if (data_distance >= 0 && data_distance <= m_blkSize) {
+                if (data_distance >= 0 && data_distance < m_blkSize) {
                     p->~T();
                     memset(reinterpret_cast<void*>(p), 0, sizeof(T));
-                    *(reinterpret_cast<int*>(p)) = current_block->firstFreeIndex;
+                    int* pp = (reinterpret_cast<int*>(p));
+                    *pp = current_block->firstFreeIndex;
                     current_block->firstFreeIndex = data_distance;
                     current_block->usedCount -= 1;
                     return true;
@@ -109,7 +106,7 @@ namespace lab618
             if (m_isDeleteElementsOnDestruct) {
                 while (cur_block != nullptr) {
                     block* next = cur_block->pnext;
-                    deleteBlock(cur_block);
+                    delete(cur_block);
                     cur_block = next;
                 };
             }
@@ -120,7 +117,9 @@ namespace lab618
                     {
                         throw CException("object not empty, must clear by yourself");
                     }
-                    cur_block = cur_block->pnext;
+                    block* blk = cur_block->pnext;
+                    deleteBlock(cur_block);
+                    cur_block = blk;
                 }
             }
             m_pBlocks = nullptr;
@@ -132,16 +131,16 @@ namespace lab618
         block* newBlock()
         {
             block* new_block = new block();
-            new_block->pdata = new T[m_blkSize];
+            char* ppp = new char[m_blkSize * sizeof(T)];
+            new_block->pdata = reinterpret_cast<T*>(ppp);
             new_block->firstFreeIndex = 0;
             new_block->usedCount = 0;
+            T* xxx = new_block->pdata;
             for (int i = 0; i < m_blkSize - 1; ++i) {
-                T* xxx = new_block->pdata + i;
-                int* aaa = reinterpret_cast<int*>(xxx);
+                int* aaa = reinterpret_cast<int*>(xxx + i);
                 *aaa = i + 1;
             }
-            T* xxx = new_block->pdata + m_blkSize - 1;
-            int* aaa = reinterpret_cast<int*>(xxx);
+            int* aaa = reinterpret_cast<int*>(xxx + m_blkSize - 1);
             *aaa = -1;
             return new_block;
         }
@@ -150,7 +149,9 @@ namespace lab618
         void deleteBlock(block *p)
         {
             /*не стыкуется с newBlock*/
-            delete[] p->pdata;
+            char* pd = reinterpret_cast<char*>(p->pdata);
+            delete[] pd;
+            //delete[] p->pdata;
             delete p;
         }
 
